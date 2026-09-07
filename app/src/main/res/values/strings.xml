@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">NoScroll</string>
+    <string name="accessibility_description">Detecta los reproductores de Instagram Reels y YouTube Shorts y pulsa Atrás para salir. Analiza la interfaz localmente; no transmite ni guarda su contenido. La versión DEBUG permite diagnóstico en Logcat.</string>
+</resources>
