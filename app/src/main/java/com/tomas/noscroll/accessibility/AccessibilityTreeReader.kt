@@ -28,7 +28,7 @@ object AccessibilityTreeReader {
                     node.text?.take(MAX_TEXT)?.toString().orEmpty(),
                     node.contentDescription?.take(MAX_TEXT)?.toString().orEmpty(),
                     node.isVisibleToUser, actionable,
-                    bounds.left, bounds.top, bounds.right, bounds.bottom)
+                    bounds.left, bounds.top, bounds.right, bounds.bottom, selected = node.isSelected)
                 val childCount = node.childCount
                 for (i in 0 until childCount) {
                     if (nodes.size >= MAX_NODES || depth >= MAX_DEPTH) { complete = false; break }

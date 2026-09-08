@@ -11,6 +11,15 @@ class AccessibilityTreeLogger {
     private var lastTreeAt: Long? = null
     private var lastDecisionAt: Long? = null
     private var lastDecision = ""
+    private val stageTimes = mutableMapOf<String, Long>()
+
+    fun stage(stage: String, details: String, always: Boolean = false) {
+        if (!BuildConfig.DEBUG) return
+        val now = SystemClock.elapsedRealtime()
+        if (!always && stageTimes[stage]?.let { now - it < 1_000 } == true) return
+        stageTimes[stage] = now
+        Log.d(DETECTOR_TAG, "stage=$stage $details")
+    }
 
     fun tree(tree: TreeSnapshot) {
         if (!BuildConfig.DEBUG || tree.packageName !in PACKAGES) return
@@ -20,7 +29,7 @@ class AccessibilityTreeLogger {
         Log.d(TREE_TAG, "package=${tree.packageName} nodes=${tree.nodes.size} complete=${tree.complete}")
         // Se reutiliza el snapshot acotado, sin un segundo recorrido del framework.
         tree.nodes.take(120).forEachIndexed { index, n ->
-            Log.d(TREE_TAG, "#$index parent=${n.parent} depth=${n.depth} visible=${n.visible} " +
+            Log.d(TREE_TAG, "#$index parent=${n.parent} depth=${n.depth} visible=${n.visible} selected=${n.selected} " +
                 "bounds=${n.left},${n.top},${n.right},${n.bottom} " +
                 "className=${safe(n.className)} viewIdResourceName=${safe(n.viewId)} " +
                 "text=${safe(n.text)} contentDescription=${safe(n.description)}")

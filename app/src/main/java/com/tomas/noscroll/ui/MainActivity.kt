@@ -25,7 +25,9 @@ import com.tomas.noscroll.preferences.BlockPreferences
 class MainActivity : ComponentActivity() {
     private lateinit var preferences: BlockPreferences
     private var serviceEnabled by mutableStateOf(false)
+    private var serviceConnected by mutableStateOf(false)
     private var instagramEnabled by mutableStateOf(true)
+    private var exploreEnabled by mutableStateOf(true)
     private var youtubeEnabled by mutableStateOf(true)
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -40,10 +42,18 @@ class MainActivity : ComponentActivity() {
                         verticalArrangement = Arrangement.spacedBy(20.dp)) {
                         Text("NoScroll", style = MaterialTheme.typography.headlineLarge)
                         HorizontalDivider()
-                        Text(if (serviceEnabled) "✓ Protección activa" else "⚠ Protección desactivada",
+                        Text(when {
+                            serviceConnected -> "✓ Protección activa"
+                            serviceEnabled -> "⚠ Servicio habilitado, sin conexión"
+                            else -> "⚠ Protección desactivada"
+                        },
                             style = MaterialTheme.typography.titleLarge)
-                        Text(if (serviceEnabled) "Servicio de accesibilidad activo"
-                            else "Servicio de accesibilidad desactivado")
+                        Text(when {
+                            serviceConnected -> "Servicio de accesibilidad activo"
+                            serviceEnabled -> "Android tiene NoScroll habilitado, pero el servicio no está conectado. " +
+                                "Si persiste, desactívalo y vuelve a activarlo en Accesibilidad."
+                            else -> "Servicio de accesibilidad desactivado"
+                        })
                         if (!serviceEnabled) {
                             Button(onClick = { startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)) }) {
                                 Text("Activar servicio de accesibilidad")
@@ -56,6 +66,10 @@ class MainActivity : ComponentActivity() {
                             instagramEnabled = it
                             preferences.instagramReels = it
                         }
+                        PreferenceSwitch("Bloquear Explorar y búsqueda de Instagram", exploreEnabled) {
+                            exploreEnabled = it
+                            preferences.instagramExplore = it
+                        }
                         PreferenceSwitch("Bloquear YouTube Shorts", youtubeEnabled) {
                             youtubeEnabled = it
                             preferences.youtubeShorts = it
@@ -63,7 +77,7 @@ class MainActivity : ComponentActivity() {
                         HorizontalDivider()
                         Text("NoScroll bloquea contenido de scroll infinito sin impedir usar el resto de las aplicaciones.")
                         Text("Funciona sin Internet. El servicio analiza la interfaz de Instagram y YouTube " +
-                            "para salir de sus reproductores de Reels y Shorts mediante Atrás.",
+                            "para salir de Reels, Shorts y Explorar mediante Atrás.",
                             style = MaterialTheme.typography.bodySmall)
                     }
                 }
@@ -73,16 +87,30 @@ class MainActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
+        refreshAccessibilityState()
+        instagramEnabled = preferences.instagramReels
+        exploreEnabled = preferences.instagramExplore
+        youtubeEnabled = preferences.youtubeShorts
+    }
+
+    private fun refreshAccessibilityState() {
         val manager = getSystemService(AccessibilityManager::class.java)
         val expected = ComponentName(this, NoScrollAccessibilityService::class.java)
-        // Consulta al volver de Ajustes, sin polling ni referencias estáticas al servicio.
-        serviceEnabled = manager.getEnabledAccessibilityServiceList(AccessibilityServiceInfo.FEEDBACK_ALL_MASK)
+        // La lista del manager puede omitir un servicio habilitado que se haya caído.
+        // Conservamos la comparación estructurada para comprobar la conexión real.
+        serviceConnected = manager.getEnabledAccessibilityServiceList(AccessibilityServiceInfo.FEEDBACK_ALL_MASK)
             .any { info ->
                 val service = info.resolveInfo.serviceInfo
-                ComponentName(service.packageName, service.name) == expected
+                ComponentName.createRelative(service.packageName, service.name) == expected
             }
-        instagramEnabled = preferences.instagramReels
-        youtubeEnabled = preferences.youtubeShorts
+        // Consultar de nuevo en cada onResume; no guardar este estado en preferencias.
+        // unflattenFromString admite nombres completos y relativos sin comparar substrings.
+        val configuredServices = Settings.Secure.getString(
+            contentResolver, Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES,
+        ).orEmpty()
+        serviceEnabled = serviceConnected || configuredServices.split(':').any {
+            ComponentName.unflattenFromString(it) == expected
+        }
     }
 }
 

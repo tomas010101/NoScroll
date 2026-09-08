@@ -10,15 +10,17 @@ class YouTubeShortsDetector : ScoringDetector() {
     // Shorts solo y los controles de videos normales jamás habilitan BACK sin contenedor.
     override val rules = listOf(
         SignalRule("SHORTS_CONTEXT", 2, setOf("shorts"), setOf("reel_player_shorts_logo")),
-        SignalRule("LIKE_CONTROL", 1, setOf("like", "me gusta"),
+        // Descripciones observadas en YouTube 21.35.442 (español), dentro de reel_recycler.
+        SignalRule("LIKE_CONTROL", 1, setOf("like", "me gusta", "poner me gusta en este video"),
             setOf("like_button", "reel_like_button"), control = true),
         SignalRule("DISLIKE_CONTROL", 1, setOf("dislike", "no me gusta"),
             setOf("dislike_button", "reel_dislike_button"), control = true),
         SignalRule("COMMENTS_CONTROL", 1, setOf("comments", "comentarios", "comment"),
             setOf("reel_comment_button", "comments_button"), control = true),
-        SignalRule("SHARE_CONTROL", 1, setOf("share", "compartir"),
+        SignalRule("SHARE_CONTROL", 1, setOf("share", "compartir", "compartir este video"),
             setOf("reel_share_button", "share_button"), control = true),
-        SignalRule("REMIX_CONTEXT", 2, setOf("remix", "remixar", "remezclar"),
+        SignalRule("REMIX_CONTEXT", 2, setOf("remix", "remixar", "remezclar",
+            "hacer un remix de este short con"),
             setOf("reel_remix_button")),
     )
 }

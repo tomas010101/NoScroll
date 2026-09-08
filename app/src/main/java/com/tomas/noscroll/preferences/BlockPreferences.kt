@@ -4,6 +4,9 @@ import android.content.Context
 
 class BlockPreferences(context: Context) {
     private val prefs = context.applicationContext.getSharedPreferences("blocking", Context.MODE_PRIVATE)
+    var instagramExplore: Boolean
+        get() = prefs.getBoolean("instagram_explore", true)
+        set(value) { prefs.edit().putBoolean("instagram_explore", value).apply() }
     var instagramReels: Boolean
         get() = prefs.getBoolean("instagram_reels", true)
         set(value) { prefs.edit().putBoolean("instagram_reels", value).apply() }

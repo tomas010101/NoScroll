@@ -12,6 +12,7 @@ data class NodeSnapshot(
     val visible: Boolean,
     val actionable: Boolean,
     val left: Int, val top: Int, val right: Int, val bottom: Int,
+    val selected: Boolean = false,
 ) {
     val width get() = (right - left).coerceAtLeast(0)
     val height get() = (bottom - top).coerceAtLeast(0)

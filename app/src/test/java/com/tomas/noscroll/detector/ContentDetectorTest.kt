@@ -7,6 +7,36 @@ class ContentDetectorTest {
     private val instagram = InstagramReelsDetector()
     private val youtube = YouTubeShortsDetector()
 
+    // Etiquetas de controles capturadas por NOSCROLL_TREE en el teléfono (08/09/2026).
+    private val capturedShortLabels = listOf(
+        "poner Me gusta en este video, al igual que 150 personas más",
+        "Ver 2\u00a0comentarios", "Guardar", "Compartir este video",
+        "Hacer un remix de este Short con 46 mil remixes más",
+    )
+
+    @Test fun capturedSpanishShortDescriptionsReachNine() {
+        val original = tree(youtube, capturedShortLabels, "reel_recycler")
+        val captured = original.copy(nodes = original.nodes.map {
+            it.copy(description = it.text, text = "")
+        })
+        val result = youtube.detect(captured)
+        assertTrue(result.blocked)
+        assertEquals(9, result.score)
+        assertEquals(setOf("PLAYER_CONTAINER", "LIKE_CONTROL", "SHARE_CONTROL", "REMIX_CONTEXT"),
+            result.signals.keys)
+    }
+
+    @Test fun capturedShortLabelsWithoutPlayerAreAllowed() {
+        assertFalse(youtube.detect(tree(youtube, capturedShortLabels)).blocked)
+    }
+
+    @Test fun capturedShortLabelsInNonActionableCaptionAreAllowed() {
+        val original = tree(youtube, capturedShortLabels, "reel_recycler")
+        assertFalse(youtube.detect(original.copy(nodes = original.nodes.map {
+            it.copy(actionable = false)
+        })).blocked)
+    }
+
     private fun node(pkg: String, id: String = "", label: String = "", depth: Int = 1,
                      visible: Boolean = true, actionable: Boolean = true,
                      left: Int = 0, top: Int = 0, right: Int = 1080, bottom: Int = 1920) =
