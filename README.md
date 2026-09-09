@@ -164,3 +164,9 @@ Para cambios de detección:
 5. Alterna entre ambas aplicaciones varias veces, prueba los interruptores por separado y verifica que las preferencias persistan.
 
 Mantén los cambios acotados y describe qué se verificó realmente en el dispositivo. El alcance actual no incluye estadísticas, rachas, PIN, horarios ni modo estricto.
+
+## Licencia
+
+NoScroll es software libre distribuido bajo la **GNU General Public License v3.0 (GPLv3)**. Consulta el texto completo en [LICENSE](LICENSE).
+
+Puedes usar, estudiar, modificar y compartir el proyecto, incluso con fines comerciales. Si distribuyes versiones modificadas, debes hacerlo bajo la GPLv3 y facilitar el código fuente correspondiente conforme a sus términos. El software se ofrece sin garantía.
